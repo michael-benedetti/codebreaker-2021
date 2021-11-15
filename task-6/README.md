@@ -27,7 +27,7 @@ int main(int argc,char **argv)
 }
 ```
 
-At first glance, we can see a call to the function `gitGrabber` followed by a call to the oddly named `jlwcaabvzqrqc`.  Whatever is returned from this functino is then passed to `execvp`, and then `main` returns.  To help us reason about the binary, it is important that as we identify new functionality, we appropriately label it.  An approach to reverse engineering complex binaries that has worked for me thus far is to combine static analyis in Ghidra with dynamic analysis in gdb.  This way, as we encounter function calls, we can observe the real behavior and return values to help identify what it's doing.  Just don't go running strange binaries if you don't have a reliable sandbox environment to run them in.
+At first glance, we can see a call to the function `gitGrabber` followed by a call to the oddly named `jlwcaabvzqrqc`.  Whatever is returned from this function is then passed to `execvp`, and then `main` returns.  To help us reason about the binary, it is important that as we identify new functionality, we appropriately label it.  An approach to reverse engineering complex binaries that has worked for me thus far is to combine static analyis in Ghidra with dynamic analysis in gdb.  This way, as we encounter function calls, we can observe the real behavior and return values to help identify what it's doing.  Just don't go running strange binaries if you don't have a reliable sandbox environment to run them in.
 
 Before we fire up gdb, let's take a look at some of the file characteristics:
 

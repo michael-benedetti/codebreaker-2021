@@ -69,7 +69,7 @@ close(5)
 ...
 ```
 
-`strace` produces a ton of interesting syscall information for us, to include the above calls to open, and our failed socket connection as we suspected.  We will need a way to continue past this point in our dynamic analysis.  We have a couple options at our disposal:  We could modify the return value of the call to `higwbxbrkvcvt` to trick the program into thinking it had a successful connection.  We could also redirect connection attempts to the target ip to localhost where we have a waiting netcat listener.  Let's go with the former.
+`strace` produces a ton of interesting syscall information for us, to include the above calls to open, and our failed socket connection as we suspected.  We will need a way to continue past this point in our dynamic analysis.  We have a couple options at our disposal:  We could modify the return value of the call to `higwbxbrkvcvt` to trick the program into thinking it had a successful connection.  We could also redirect connection attempts to the target ip to localhost where we have a waiting netcat listener.  Let's go with the latter.
 
 To do so, we'll leverage `iptables`, which we'll need to ensure our docker configuration supports.  For `iptables` to work, we need our container to run in privileged mode and have access to the `NET_ADMIN` capability.  Exit out of the container and re-run it with the following:
 

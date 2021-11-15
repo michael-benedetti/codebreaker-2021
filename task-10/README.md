@@ -634,7 +634,7 @@ base: 0x7f15b1a0d000
 
 Knowing our base and having demonstrated a successful simple ROP chain to call exit, we should now be able to do something more robust.  There are many approaches we could take from here.  I chose to attempt to modify the non-executable stack to instead be executable.  From there, we can put shellcode on the stack, and find a ROP gadget to jump to our shellcode.
 
-###But where is the stack?
+### But where is the stack?
 
 First, we need to know where the stack is in address space.  We know the canary, we know the .text section base address, but we do not net know where the stack is.  There is nothing immediately evident we can target for a brute force approach, but if you recall earlier in our analysis of the LP binary, we do have some open file descriptors that we may be able to leverage here.  If we can find a way to write some data from the stack into one of these files, we may be able to leak a stack address.
 

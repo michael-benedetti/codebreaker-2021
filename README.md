@@ -7,7 +7,7 @@ This repository houses my writeups for the [NSA Codebreaker Challenge](https://n
 - [Task 4](task-4/)
 - [Task 5](task-5/)
 - [Task 6](task-6/)
-- Task 7
+- [Task 7](task-7/)
 - Task 8
 - Task 9
 - [Task 10](task-10/)

